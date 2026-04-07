@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database.database import SessionLocal
 from app.dependencies.auth import get_current_user
+from app.dependencies.project import get_current_user_project
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectUpdate
@@ -44,19 +45,10 @@ def create_project(
 
 @router.put("/{project_id}")
 def update_project(
-    project_id: int,
     project_data: ProjectUpdate,
-    current_user: User = Depends(get_current_user),
+    project: Project = Depends(get_current_user_project),
     db: Session = Depends(get_db)
 ):
-    project = db.query(Project).filter(Project.id == project_id).first()
-
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    if project.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
     project.name = project_data.name
     project.description = project_data.description
 
@@ -68,18 +60,9 @@ def update_project(
 
 @router.delete("/{project_id}")
 def delete_project(
-    project_id: int,
-    current_user: User = Depends(get_current_user),
+    project: Project = Depends(get_current_user_project),
     db: Session = Depends(get_db)
 ):
-    project = db.query(Project).filter(Project.id == project_id).first()
-
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    if project.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
     db.delete(project)
     db.commit()
 
@@ -95,17 +78,5 @@ def get_projects(
 
 
 @router.get("/{project_id}")
-def get_project(
-    project_id: int,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    project = db.query(Project).filter(Project.id == project_id).first()
-
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    if project.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not enough permissions")
-
+def get_project(project: Project = Depends(get_current_user_project)):
     return project
