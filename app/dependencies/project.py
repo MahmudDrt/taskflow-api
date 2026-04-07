@@ -1,18 +1,10 @@
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database.database import SessionLocal
+from app.dependencies.database import get_db
 from app.models.project import Project
 from app.models.user import User
 from app.dependencies.auth import get_current_user
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def get_current_user_project(
