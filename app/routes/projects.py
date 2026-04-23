@@ -5,12 +5,12 @@ from app.dependencies.database import get_db
 from app.dependencies.auth import get_current_user
 from app.models.project import Project
 from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectUpdate
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.post("")
+@router.post("", response_model=ProjectResponse)
 def create_project(
     project: ProjectCreate,
     current_user: User = Depends(get_current_user),
@@ -26,16 +26,10 @@ def create_project(
     db.commit()
     db.refresh(new_project)
 
-    return {
-        "id": new_project.id,
-        "name": new_project.name,
-        "description": new_project.description,
-        "owner_id": new_project.owner_id,
-        "created_at": new_project.created_at
-    }
+    return new_project
 
 
-@router.get("")
+@router.get("", response_model=list[ProjectResponse])
 def get_projects(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -44,7 +38,7 @@ def get_projects(
     return projects
 
 
-@router.get("/{project_id}")
+@router.get("/{project_id}", response_model=ProjectResponse)
 def get_project(
     project_id: int,
     current_user: User = Depends(get_current_user),
@@ -61,7 +55,7 @@ def get_project(
     return project
 
 
-@router.put("/{project_id}")
+@router.put("/{project_id}", response_model=ProjectResponse)
 def update_project(
     project_id: int,
     project_data: ProjectUpdate,

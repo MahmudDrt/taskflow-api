@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.dependencies.database import get_db
@@ -6,12 +6,12 @@ from app.dependencies.auth import get_current_user
 from app.models.task import Task
 from app.models.project import Project
 from app.models.user import User
-from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
-@router.post("")
+@router.post("", response_model=TaskResponse)
 def create_task(
     task: TaskCreate,
     current_user: User = Depends(get_current_user),
@@ -40,22 +40,24 @@ def create_task(
     return new_task
 
 
-@router.get("")
+@router.get("", response_model=list[TaskResponse])
 def get_tasks(
+    project_id: int | None = Query(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    tasks = (
-        db.query(Task)
-        .join(Project)
-        .filter(Project.owner_id == current_user.id)
-        .all()
+    query = db.query(Task).join(Project).filter(
+        Project.owner_id == current_user.id
     )
 
+    if project_id is not None:
+        query = query.filter(Task.project_id == project_id)
+
+    tasks = query.all()
     return tasks
 
 
-@router.get("/{task_id}")
+@router.get("/{task_id}", response_model=TaskResponse)
 def get_task(
     task_id: int,
     current_user: User = Depends(get_current_user),
@@ -74,7 +76,7 @@ def get_task(
     return task
 
 
-@router.put("/{task_id}")
+@router.put("/{task_id}", response_model=TaskResponse)
 def update_task(
     task_id: int,
     task_data: TaskUpdate,

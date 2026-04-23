@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict
 
 
 class ProjectCreate(BaseModel):
@@ -9,3 +10,13 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     name: str
     description: str | None = None
+
+
+class ProjectResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    description: str | None
+    owner_id: int
+    created_at: datetime

@@ -4,19 +4,10 @@ from sqlalchemy.exc import IntegrityError
 
 from app.schemas.user import UserCreate, UserLogin
 from app.models.user import User
-from app.database.database import SessionLocal
+from app.dependencies.database import get_db   # ВОТ ЭТО ВАЖНО
 from app.utils.security import hash_password, verify_password, create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
