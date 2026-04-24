@@ -1,2 +1,12 @@
-taskflow.db
-**/__pycache__/
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.pyc
+
+venv/
+.venv/
+
+.vscode/
+.idea/

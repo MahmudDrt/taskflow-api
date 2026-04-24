@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
-from app.database.database import Base
+from app.db.session import Base
 
 
 class Project(Base):
@@ -13,3 +14,6 @@ class Project(Base):
     description = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    owner = relationship("User", back_populates="projects")
+    tasks = relationship("Task", back_populates="project", cascade="all, delete")

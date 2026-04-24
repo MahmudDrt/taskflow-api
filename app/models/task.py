@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
-from app.database.database import Base
+from app.db.session import Base
 
 
 class Task(Base):
@@ -15,3 +16,5 @@ class Task(Base):
     deadline = Column(DateTime, nullable=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    project = relationship("Project", back_populates="tasks")

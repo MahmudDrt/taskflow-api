@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 
-from app.routes import health, auth, users, projects, tasks
+from app.routers import health, auth, users, projects, tasks
 
-app = FastAPI()
+app = FastAPI(title="TaskFlow API")
 
 app.include_router(health.router)
 app.include_router(auth.router)

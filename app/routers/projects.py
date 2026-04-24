@@ -1,25 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.dependencies.database import get_db
-from app.dependencies.auth import get_current_user
+from app.deps.auth import get_current_user
+from app.deps.database import get_db
 from app.models.project import Project
 from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse
+from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.post("", response_model=ProjectResponse)
+@router.post("", response_model=ProjectResponse, status_code=status.HTTP_201_CREATED)
 def create_project(
     project: ProjectCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     new_project = Project(
         name=project.name,
         description=project.description,
-        owner_id=current_user.id
+        owner_id=current_user.id,
     )
 
     db.add(new_project)
@@ -32,17 +32,16 @@ def create_project(
 @router.get("", response_model=list[ProjectResponse])
 def get_projects(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    projects = db.query(Project).filter(Project.owner_id == current_user.id).all()
-    return projects
+    return db.query(Project).filter(Project.owner_id == current_user.id).all()
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
 def get_project(
     project_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     project = db.query(Project).filter(Project.id == project_id).first()
 
@@ -60,7 +59,7 @@ def update_project(
     project_id: int,
     project_data: ProjectUpdate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     project = db.query(Project).filter(Project.id == project_id).first()
 
@@ -83,7 +82,7 @@ def update_project(
 def delete_project(
     project_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     project = db.query(Project).filter(Project.id == project_id).first()
 

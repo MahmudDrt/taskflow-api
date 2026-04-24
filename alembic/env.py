@@ -1,29 +1,32 @@
 from logging.config import fileConfig
-import os
 
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from dotenv import load_dotenv
 
-from app.database.database import Base
+from app.core.config import DATABASE_URL
+from app.db.session import Base
 from app.models.user import User
 from app.models.project import Project
 from app.models.task import Task
 
-load_dotenv()
-
+# Alembic Config
 config = context.config
 
+# Logging
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+# Подставляем URL из config.py
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
+# Метаданные моделей
 target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -36,8 +39,9 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    """Run migrations in 'online' mode."""
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

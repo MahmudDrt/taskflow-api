@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
-from app.schemas.user import UserCreate, UserLogin
+from app.core.security import create_access_token, hash_password, verify_password
+from app.deps.database import get_db
 from app.models.user import User
-from app.dependencies.database import get_db   # ВОТ ЭТО ВАЖНО
-from app.utils.security import hash_password, verify_password, create_access_token
+from app.schemas.user import UserCreate, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-@router.post("/register")
+
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
@@ -22,7 +23,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         email=user.email,
         username=user.username,
-        password_hash=hash_password(user.password)
+        password_hash=hash_password(user.password),
     )
 
     try:
@@ -31,9 +32,12 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         db.refresh(new_user)
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=400, detail="User with these data already exists")
+        raise HTTPException(
+            status_code=400, detail="User with these data already exists"
+        )
 
     return {"message": "user created"}
+
 
 @router.post("/login")
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
@@ -47,7 +51,4 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
     access_token = create_access_token(data={"sub": str(user.id)})
 
-    return {
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
+    return {"access_token": access_token, "token_type": "bearer"}
