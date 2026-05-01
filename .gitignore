@@ -4,9 +4,18 @@
 
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 venv/
 .venv/
 
 .vscode/
 .idea/
+
+.pytest_cache/
+test.db
+*.sqlite
+*.sqlite3
+
+.DS_Store

@@ -8,3 +8,5 @@ python-dotenv
 alembic
 pydantic
 email-validator
+pytest
+httpx
